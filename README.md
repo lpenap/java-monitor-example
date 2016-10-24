@@ -1,5 +1,5 @@
 # Java Monitor Example
-Basic example of how to implement the (monitor)[https://en.wikipedia.org/wiki/Monitor_(synchronization)] synchronization construct to allow mutual exclusion in threads.
+Basic example of how to implement the [monitor](https://en.wikipedia.org/wiki/Monitor_%28synchronization%29) synchronization construct to allow mutual exclusion in threads.
 
 This is a common construct taught in computer science, and we will cover it's implementation using Java language.
 
@@ -35,7 +35,7 @@ Implementing a monitor construct in Java is very straightforward. The conditions
 * After a thread is finished using the method, all blocked methods will compete to access the method and only one will win the exclusive access.
 
 Java have a simple way to implement this, and it is accomplished using `synchronized` methods:
-* If we add the `synchronized` (keyword)[https://docs.oracle.com/javase/tutorial/essential/concurrency/syncmeth.html] to a method (other than constructors), the entire set of synchronized methods in a class will become a Monitor.
+* If we add the `synchronized` [keyword](https://docs.oracle.com/javase/tutorial/essential/concurrency/syncmeth.html) to a method (other than constructors), the entire set of synchronized methods in a class will become a Monitor.
 * The first thread to access a synchronized method in the Monitor will acquire a lock over the entire set of synchronized methods.
 * Other threads wishing to access other synchronized methods (or the same one) will block until the first thread finish accessing the method.
 * All threads that wants to access a synchronized method will compete to gain a new lock (including the thread that just released the lock). The JVM will decide which thread enters (it is nondeterministic).
@@ -43,9 +43,9 @@ Java have a simple way to implement this, and it is accomplished using `synchron
 This is implemented by the `IntegerStorage` class.
 
 ### Runnables and threads
-The basic way to implement multithreading in Java is to implement the (Runnable)[https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html] interface:
+The basic way to implement multithreading in Java is to implement the [Runnable](https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html) interface:
 * We implement the Runnable interface and implement the logic in its `run()` method.
-* We instantiate the (Thread)[https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html] class and pass an instance of our runnable to it. See `Main` class.
+* We instantiate the [Thread](https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html) class and pass an instance of our runnable to it. See `Main` class.
 * We call the `start` method of our thread class in order to **asynchronously** start the thread.
 * Our code in the Runnable's `run()` method will be executed.
 * Please note, that each thread is responsible for finish in a clean way. Threads caught in loops or with unfinished conditions, will certainly create a memory leak. Assigning `null` to a thread reference will not get rid of the thread and it will not get caught by the GC.
@@ -61,10 +61,10 @@ To implement this, we need to code the following behavior:
 
 * A `StorageNotifer` thread instance will enter a synchronized method in our monitor, hence, acquiring a lock.
 * It will check if all integers were already consumed.
-** If there is no more integers available, then we notify with a message `All integers consumed!`
-** If there is more integers, it will wait. See `IntegerStorage.waitForAllThreads()`.
+  * If there is no more integers available, then we notify with a message `All integers consumed!`
+  * If there is more integers, it will wait. See `IntegerStorage.waitForAllThreads()`.
 * Other threads consuming the integers will need to notify our sleep thread after each consuming operation.
-** The `notifyAll()` will wake all waiting threads (we have only one, our StorageNotifier instance) and they will compete to acquire a lock over the monitor to resume executing code inside the monitor.
+  * The `notifyAll()` will wake all waiting threads (we have only one, our StorageNotifier instance) and they will compete to acquire a lock over the monitor to resume executing code inside the monitor.
 
 ## Launching
 You can clone the git repository and Import the project using Eclipse.
