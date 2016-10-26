@@ -1,6 +1,8 @@
 package com.digitalicagroup.example.monitor;
 
-public class StorageNotifier implements Runnable {
+import java.util.Observable;
+
+public class StorageNotifier extends Observable implements Runnable {
 
 	private IntegerStorage intStorage;
 
@@ -12,7 +14,8 @@ public class StorageNotifier implements Runnable {
 	public void run() {
 		try {
 			intStorage.waitForAllThreads();
-			System.out.println("All integers consumed!");
+			setChanged();
+			notifyObservers();
 		} catch (InterruptedException ignored) {
 		}
 	}
