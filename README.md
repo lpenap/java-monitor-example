@@ -21,6 +21,10 @@ We have a finite quantity of integers available to be consumed by a certain amou
 * **StorageNotifier**, will notify us when all integers are consumed.
 * **Main**, Executable class. Will get the storage reference and launch the notifier and consumers.
 
+#### Requirements
+* (Optional) Eclipse to import and run the project.
+* Java 8 SE from Oracle (Not tested with others JVM but it should work).
+
 ## Topics
 All source code should be self explanatory, so for each topic described here, please refer to the class in question. If you are not sure where to start, start reading the `Main` class.
 
