@@ -9,6 +9,7 @@ This basic example covers several Java topics:
 - [x] Monitor synchronization mechanism for mutual exclusion.
 - [x] Runnable implementation and Threads launching.
 - [x] Thread Waiting and Signaling.
+- [x] Observer/Observable java implementation.
 
 ## Problem
 A number of threads wants to consume data from the same place, and each piece of data can be consumed just once. Hence we need to implement a mutual exclusion mechanism, or a Monitor in this case.
@@ -65,41 +66,25 @@ To implement this, we need to code the following behavior:
   * If there is more integers, it will wait. See `IntegerStorage.waitForAllThreads()`.
 * Other threads consuming the integers will need to notify our sleep thread after each consuming operation.
   * The `notifyAll()` will wake all waiting threads (we have only one, our StorageNotifier instance) and they will compete to acquire a lock over the monitor to resume executing code inside the monitor.
+  
+### Observer/Observable implementation
+The java implementation of the [Observer](https://en.wikipedia.org/wiki/Observer_pattern) pattern is quite easy. We need first to design which classes will be *observable* and which classes will be the *observer(s)*. In this example:
+* Instances of `IntegerConsumer` will be *observable* because our UI needs to update the panels with the integers being consumed. In order to do this, we need to do a couple of changes:
+  * Extend the `Observable` class: 
+```java
+public class IntegerConsumer extends Observable implements Runnable {
+```
+  * Notify the observers of an action being taken:
+```java
+setChanged();
+notifyObservers(consumed);
+```
+* Our `MainWindowObserver` will be the *observer* for each `IntegerConsumer` instance to reflect the changes in the UI, so 
 
 ## Launching
 You can clone the git repository and Import the project using Eclipse.
-Running the `Main` class should output something like this to the console:
-```
-Consumer 0 consuming int: 30
-Consumer 0 consuming int: 29
-Consumer 0 consuming int: 28
-Consumer 0 consuming int: 27
-Consumer 0 consuming int: 26
-Consumer 0 consuming int: 25
-Consumer 0 consuming int: 24
-Consumer 2 consuming int: 23
-Consumer 2 consuming int: 22
-Consumer 2 consuming int: 21
-Consumer 2 consuming int: 20
-Consumer 2 consuming int: 19
-Consumer 2 consuming int: 18
-Consumer 2 consuming int: 17
-Consumer 1 consuming int: 16
-Consumer 1 consuming int: 15
-Consumer 1 consuming int: 14
-Consumer 1 consuming int: 13
-Consumer 1 consuming int: 12
-Consumer 1 consuming int: 11
-Consumer 1 consuming int: 10
-Consumer 1 consuming int: 9
-Consumer 1 consuming int: 8
-Consumer 1 consuming int: 7
-Consumer 1 consuming int: 6
-Consumer 1 consuming int: 5
-Consumer 1 consuming int: 4
-Consumer 1 consuming int: 3
-Consumer 1 consuming int: 2
-Consumer 1 consuming int: 1
-All integers consumed!
-```
-Note that the consumers IDs will be different in each execution, because the JVM will assign the lock to the fighting threads according to its internal (nondeterministic) policy.
+Running the `Main` class should render a graphic interface with a visual
+representation of this simulation:
+* The main window shows a number of random-colored panels.
+* The window will *observe* each *observable* `IntegerConsumer` and will update the matching panel with the corresponding consumed integer.
+

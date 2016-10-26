@@ -1,6 +1,8 @@
 package com.digitalicagroup.example.monitor;
 
-public class IntegerConsumer implements Runnable {
+import java.util.Observable;
+
+public class IntegerConsumer extends Observable implements Runnable {
 
 	private IntegerStorage monitor;
 	private int id;
@@ -12,10 +14,18 @@ public class IntegerConsumer implements Runnable {
 
 	@Override
 	public void run() {
-		int consumed = monitor.consumeInt(this.getId());
-		while (consumed > 0) {
-			consumed = monitor.consumeInt(this.getId());
+		try {
+			int consumed = 0;
+			while ((consumed = monitor.consumeInt()) > 0) {
+				processInteger(consumed);
+			}
+		} catch (InterruptedException ignored) {
 		}
+	}
+
+	private void processInteger(int consumed) throws InterruptedException {
+		setChanged();
+		notifyObservers(consumed);
 	}
 
 	public int getId() {
