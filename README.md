@@ -1,7 +1,7 @@
 # Java Monitor Example
 Basic example of how to implement the [monitor](https://en.wikipedia.org/wiki/Monitor_%28synchronization%29) synchronization construct to allow mutual exclusion in threads.
 
-This is a common construct taught in computer science, and we will cover it's implementation using Java language.
+This is a common construct taught in computer science, and we will cover it's implementation using Java language while rendering a basic graphic interface to represent the simulation being done.
 
 ## Example coverage
 This basic example covers several Java topics:
@@ -69,8 +69,8 @@ To implement this, we need to code the following behavior:
   
 ### Observer/Observable implementation
 The java implementation of the [Observer](https://en.wikipedia.org/wiki/Observer_pattern) pattern is quite easy. We need first to design which classes will be *observable* and which classes will be the *observer(s)*. In this example:
-* Instances of `IntegerConsumer` will be *observable* because our UI needs to update the panels with the integers being consumed. In order to do this, we need to do a couple of changes:
-  * Extend the `Observable` class: 
+* Instances of `IntegerConsumer` will be *observable* because our UI needs to update the panels with the integers being consumed.
+* Extend the `Observable` class: 
 ```java
 public class IntegerConsumer extends Observable implements Runnable {
 ```
@@ -79,7 +79,19 @@ public class IntegerConsumer extends Observable implements Runnable {
 setChanged();
 notifyObservers(consumed);
 ```
-* Our `MainWindowObserver` will be the *observer* for each `IntegerConsumer` instance to reflect the changes in the UI, so 
+* Our `MainWindowObserver` will be the *observer* for each `IntegerConsumer` instance to reflect the changes in the UI, so we implement the `Observer` interface. That prompts us to code an additional method to take action every time an *observable* instance notify its observers.
+```java
+public void update(Observable o, Object arg) {
+}
+```
+* The final step is to bind all together, we need to register our `MainWindowObserver` instance into each `IntegerConsumer` instance:
+```java
+MainWindowObserver window = new MainWindowObserver(consumerCount);
+. . .
+IntegerConsumer consumer = new IntegerConsumer(intStorage, i);
+consumer.addObserver(window);
+```
+  
 
 ## Launching
 You can clone the git repository and Import the project using Eclipse.
