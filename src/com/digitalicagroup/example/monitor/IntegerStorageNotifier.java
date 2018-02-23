@@ -2,11 +2,11 @@ package com.digitalicagroup.example.monitor;
 
 import java.util.Observable;
 
-public class StorageNotifier extends Observable implements Runnable {
+public class IntegerStorageNotifier extends Observable implements Runnable {
 
-	private IntegerStorage intStorage;
+	private IntegerStorageMonitor intStorage;
 
-	public StorageNotifier(IntegerStorage intStorage) {
+	public IntegerStorageNotifier(IntegerStorageMonitor intStorage) {
 		this.intStorage = intStorage;
 	}
 
@@ -17,7 +17,9 @@ public class StorageNotifier extends Observable implements Runnable {
 			setChanged();
 			notifyObservers();
 		} catch (InterruptedException ignored) {
+		} catch (ForcedStopException ignored) {
+		} finally {
+			deleteObservers();
 		}
 	}
-
 }

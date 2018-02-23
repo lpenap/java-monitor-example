@@ -12,14 +12,19 @@ import java.util.Random;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import com.digitalicagroup.example.monitor.ForcedStopException;
 import com.digitalicagroup.example.monitor.IntegerConsumer;
-import com.digitalicagroup.example.monitor.IntegerStorage;
-import com.digitalicagroup.example.monitor.StorageNotifier;
+import com.digitalicagroup.example.monitor.IntegerStorageNotifier;
+import com.digitalicagroup.example.monitor.ui.listeners.MenuItemAbout;
+import com.digitalicagroup.example.monitor.ui.listeners.MenuItemRestart;
 
-public class MainWindowObserver implements OutputManager {
+public class UIManagerSwingImpl implements UIManager {
 
 	private JFrame frame;
 
@@ -29,16 +34,12 @@ public class MainWindowObserver implements OutputManager {
 
 	private Random random;
 
-	private IntegerStorage storage;
-
 	private JLabel lastLabel;
-
-	private StorageNotifier emptyStorageNotifier;
 
 	/**
 	 * Create the application.
 	 */
-	public MainWindowObserver(int threadsQuantity) {
+	public UIManagerSwingImpl(int threadsQuantity) {
 		this.threadsQuantity = threadsQuantity;
 		this.random = new Random();
 		this.lastLabel = null;
@@ -55,6 +56,8 @@ public class MainWindowObserver implements OutputManager {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(new GridLayout(3, 3, 2, 2));
 
+		frame.setJMenuBar(getJMenuBar());
+
 		panels = new ArrayList<JPanel>(this.threadsQuantity);
 
 		for (int i = 0; i < threadsQuantity; i++) {
@@ -68,7 +71,8 @@ public class MainWindowObserver implements OutputManager {
 
 			// Building a label for the Pane
 			JLabel label = new JLabel(" ");
-			label.setFont(new Font(label.getFont().getName(), Font.PLAIN, 32));
+			label.setFont(
+				new Font(label.getFont().getName(), Font.PLAIN, 32));
 			label.setForeground(foreground);
 			panel.setLayout(new GridBagLayout());
 			panel.add(label);
@@ -77,13 +81,33 @@ public class MainWindowObserver implements OutputManager {
 		}
 	}
 
+	protected JMenuBar getJMenuBar() {
+		JMenuBar menuBar = new JMenuBar();
+
+		JMenu menu = new JMenu("Monitor");
+		JMenuItem restartItem = new JMenuItem("Restart");
+		JMenuItem aboutItem = new JMenuItem("About");
+
+		aboutItem.addActionListener(new MenuItemAbout(this.frame));
+		restartItem.addActionListener(new MenuItemRestart(this.frame));
+
+		menu.add(restartItem);
+		menu.addSeparator();
+		menu.add(aboutItem);
+		menuBar.add(menu);
+
+		return menuBar;
+	}
+
 	protected Color getRandomColor() {
-		return new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
+		return new Color(random.nextInt(256), random.nextInt(256),
+			random.nextInt(256));
 	}
 
 	protected Color getContrastColor(Color color) {
 		int octet = 0;
-		double luminance = 1 - (0.299 * color.getRed() + 0.587 * color.getGreen() + 0.114 * color.getBlue()) / 255;
+		double luminance = 1 - (0.299 * color.getRed()
+			+ 0.587 * color.getGreen() + 0.114 * color.getBlue()) / 255;
 		if (luminance < 0.5) {
 			octet = 0;
 		} else {
@@ -94,34 +118,38 @@ public class MainWindowObserver implements OutputManager {
 
 	@Override
 	public void update(Observable o, Object arg) {
-		if (o == emptyStorageNotifier) {
-			JOptionPane.showMessageDialog(frame, "All Integers Consumed!");
+		if (o instanceof IntegerStorageNotifier) {
+			JOptionPane.showMessageDialog(frame,
+				"All Integers Consumed!");
 			System.out.println("All Integers Consumed!");
-		} else {
-			updatePanel(o, arg);
+		}
+		if (o instanceof IntegerConsumer) {
+			if (arg instanceof ForcedStopException) {
+				updatePanel(o, " ");
+			} else {
+				if ((int) arg == 0) {
+					updatePanel(o, "finished");
+				} else {
+					clearLastLabel();
+					updatePanel(o, "" + (int) arg);
+				}
+			}
 		}
 	}
 
-	protected synchronized void updatePanel(Observable consumer, Object consumedInt) {
-		hidePreviousLabel();
+	protected synchronized void updatePanel(Observable consumer,
+		String panelLabel) {
 		int id = ((IntegerConsumer) consumer).getId();
 		JPanel panel = panels.get(id);
 		JLabel label = (JLabel) panel.getComponent(0);
-		label.setText("" + (int) consumedInt);
+		label.setText(panelLabel);
 		lastLabel = label;
-		System.out.println("Thread [" + id + "] consumed int " + consumedInt);
 	}
 
-	protected void hidePreviousLabel() {
+	protected void clearLastLabel() {
 		if (this.lastLabel != null) {
 			lastLabel.setText(" ");
 		}
-	}
-
-	@Override
-	public void addIntegerStorage(IntegerStorage storage) {
-		this.storage = storage;
-
 	}
 
 	@Override
@@ -130,17 +158,13 @@ public class MainWindowObserver implements OutputManager {
 	}
 
 	@Override
-	public void startSimulation() {
-		JOptionPane.showMessageDialog(frame, "Greetings!\nEach panel observes a Consumer Thread\n"
+	public boolean startSimulation() {
+		JOptionPane.showMessageDialog(frame,
+			"Greetings!\nEach panel observes a Consumer Thread\n"
 				+ "and prints the consumed int.\n\n"
 				+ "Each thread is competing for acquiring a lock\n"
 				+ "over the integer storage monitor.\nClick OK to start!");
-		storage.setStarted(true);
-	}
-
-	public void addEmptyStorageNotifier(StorageNotifier emptyStorageNotifier) {
-		this.emptyStorageNotifier = emptyStorageNotifier;
-		this.emptyStorageNotifier.addObserver(this);
+		return true;
 	}
 
 }

@@ -1,38 +1,23 @@
 package com.digitalicagroup.example.monitor;
 
-import com.digitalicagroup.example.monitor.ui.MainWindowObserver;
+import com.digitalicagroup.example.monitor.ui.UIManagerSwingImpl;
 
 public class Main {
 
+	static int CONSUMERS_COUNT = 9;
+	static int INTEGERS_TO_CONSUME = 10;
+	static int STEP_MILLIS = 500;
+
 	public static void main(String[] args) {
+		SimulationController simulationController = SimulationController
+			.instance();
 
-		// Ammount of consumer (threads) to be launched.
-		int consumerCount = 9;
-		
-		// Time to wait after each consumption.
-		int waitMillis = 500;
+		simulationController.setConsumersQuantity(CONSUMERS_COUNT);
+		simulationController.setIntegersToConsume(INTEGERS_TO_CONSUME);
+		simulationController.setSimulationStepMillis(STEP_MILLIS);
 
-		// Instance our integer storage with some integers.
-		IntegerStorage intStorage = IntegerStorage.instance(10, waitMillis);
-
-		// Launch the notifier.
-		StorageNotifier emptyStorageNotifier = new StorageNotifier(intStorage); 
-		(new Thread(emptyStorageNotifier)).start();
-
-		// create main interface
-		MainWindowObserver window = new MainWindowObserver(consumerCount);
-		window.addIntegerStorage(intStorage);
-		window.addEmptyStorageNotifier(emptyStorageNotifier);
-		window.activate();
-
-		// Launch all consumer threads.
-		for (int i = 0; i < consumerCount; i++) {
-			IntegerConsumer consumer = new IntegerConsumer(intStorage, i);
-			consumer.addObserver(window);
-			(new Thread(consumer)).start();
-		}
-
-		// start the consuming process
-		window.startSimulation();
+		simulationController
+			.initialize(new UIManagerSwingImpl(CONSUMERS_COUNT));
+		simulationController.startSimulation();
 	}
 }

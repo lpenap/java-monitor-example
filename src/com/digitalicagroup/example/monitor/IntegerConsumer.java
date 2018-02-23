@@ -1,35 +1,15 @@
 package com.digitalicagroup.example.monitor;
 
-import java.util.Observable;
+import java.util.Observer;
 
-public class IntegerConsumer extends Observable implements Runnable {
+public interface IntegerConsumer extends Runnable {
 
-	private IntegerStorage monitor;
-	private int id;
+	void run();
 
-	public IntegerConsumer(IntegerStorage monitor, int id) {
-		this.monitor = monitor;
-		this.id = id;
-	}
+	int getId();
 
-	@Override
-	public void run() {
-		try {
-			int consumed = 0;
-			while ((consumed = monitor.consumeInt()) > 0) {
-				processInteger(consumed);
-			}
-		} catch (InterruptedException ignored) {
-		}
-	}
+	void terminate();
 
-	private void processInteger(int consumed) throws InterruptedException {
-		setChanged();
-		notifyObservers(consumed);
-	}
-
-	public int getId() {
-		return this.id;
-	}
+	void addObserver(Observer o);
 
 }
