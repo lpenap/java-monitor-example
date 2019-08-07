@@ -1,4 +1,4 @@
-package com.digitalicagroup.example.monitor.ui;
+package com.penapereira.monitorexample.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -18,11 +18,11 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import com.digitalicagroup.example.monitor.ForcedStopException;
-import com.digitalicagroup.example.monitor.IntegerConsumer;
-import com.digitalicagroup.example.monitor.IntegerStorageNotifier;
-import com.digitalicagroup.example.monitor.ui.listeners.MenuItemAbout;
-import com.digitalicagroup.example.monitor.ui.listeners.MenuItemRestart;
+import com.penapereira.monitorexample.ForcedStopException;
+import com.penapereira.monitorexample.IntegerConsumer;
+import com.penapereira.monitorexample.IntegerStorageNotifier;
+import com.penapereira.monitorexample.ui.listeners.MenuItemAbout;
+import com.penapereira.monitorexample.ui.listeners.MenuItemRestart;
 
 public class UIManagerSwingImpl implements UIManager {
 

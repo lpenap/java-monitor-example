@@ -1,12 +1,12 @@
-package com.digitalicagroup.example.monitor;
+package com.penapereira.monitorexample;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.digitalicagroup.example.monitor.impl.IntegerConsumerImpl;
-import com.digitalicagroup.example.monitor.impl.IntegerStorageMonitorImpl;
-import com.digitalicagroup.example.monitor.ui.UIManager;
+import com.penapereira.monitorexample.impl.IntegerConsumerImpl;
+import com.penapereira.monitorexample.impl.IntegerStorageMonitorImpl;
+import com.penapereira.monitorexample.ui.UIManager;
 
 public class SimulationController {
 	private static SimulationController _uniqueInstance = null;

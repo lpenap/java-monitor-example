@@ -1,6 +1,6 @@
-package com.digitalicagroup.example.monitor;
+package com.penapereira.monitorexample;
 
-import com.digitalicagroup.example.monitor.ui.UIManagerSwingImpl;
+import com.penapereira.monitorexample.ui.UIManagerSwingImpl;
 
 public class Main {
 

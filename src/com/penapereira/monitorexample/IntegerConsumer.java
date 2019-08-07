@@ -1,4 +1,4 @@
-package com.digitalicagroup.example.monitor;
+package com.penapereira.monitorexample;
 
 import java.util.Observer;
 
