@@ -1,9 +1,8 @@
-package com.penapereira.monitorexample.impl;
+package com.penapereira.example.javamonitor.monitor;
 
 import java.util.Observable;
 
-import com.penapereira.monitorexample.ForcedStopException;
-import com.penapereira.monitorexample.IntegerStorageMonitor;
+import com.penapereira.example.javamonitor.exception.ForcedStopException;
 
 public class IntegerStorageMonitorImpl extends Observable
 	implements IntegerStorageMonitor {

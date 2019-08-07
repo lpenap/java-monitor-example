@@ -1,4 +1,6 @@
-package com.penapereira.monitorexample;
+package com.penapereira.example.javamonitor.monitor;
+
+import com.penapereira.example.javamonitor.exception.ForcedStopException;
 
 public interface IntegerStorageMonitor {
 

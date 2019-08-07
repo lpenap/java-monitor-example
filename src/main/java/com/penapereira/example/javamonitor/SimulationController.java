@@ -1,12 +1,15 @@
-package com.penapereira.monitorexample;
+package com.penapereira.example.javamonitor;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.penapereira.monitorexample.impl.IntegerConsumerImpl;
-import com.penapereira.monitorexample.impl.IntegerStorageMonitorImpl;
-import com.penapereira.monitorexample.ui.UIManager;
+import com.penapereira.example.javamonitor.consumer.IntegerConsumer;
+import com.penapereira.example.javamonitor.consumer.IntegerConsumerImpl;
+import com.penapereira.example.javamonitor.monitor.IntegerStorageMonitor;
+import com.penapereira.example.javamonitor.monitor.IntegerStorageMonitorImpl;
+import com.penapereira.example.javamonitor.monitor.IntegerStorageNotifier;
+import com.penapereira.example.javamonitor.ui.UIManager;
 
 public class SimulationController {
 	private static SimulationController _uniqueInstance = null;

@@ -1,6 +1,8 @@
-package com.penapereira.monitorexample;
+package com.penapereira.example.javamonitor.monitor;
 
 import java.util.Observable;
+
+import com.penapereira.example.javamonitor.exception.ForcedStopException;
 
 public class IntegerStorageNotifier extends Observable implements Runnable {
 

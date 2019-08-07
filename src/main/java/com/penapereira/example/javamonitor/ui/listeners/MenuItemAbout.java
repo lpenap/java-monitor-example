@@ -1,4 +1,4 @@
-package com.penapereira.monitorexample.ui.listeners;
+package com.penapereira.example.javamonitor.ui.listeners;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

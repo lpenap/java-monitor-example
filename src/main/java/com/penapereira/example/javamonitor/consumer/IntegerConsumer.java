@@ -1,4 +1,4 @@
-package com.penapereira.monitorexample;
+package com.penapereira.example.javamonitor.consumer;
 
 import java.util.Observer;
 

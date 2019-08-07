@@ -1,6 +1,6 @@
-package com.penapereira.monitorexample;
+package com.penapereira.example.javamonitor;
 
-import com.penapereira.monitorexample.ui.UIManagerSwingImpl;
+import com.penapereira.example.javamonitor.ui.UIManagerSwingImpl;
 
 public class Main {
 
