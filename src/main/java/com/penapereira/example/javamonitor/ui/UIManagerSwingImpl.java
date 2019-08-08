@@ -18,6 +18,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.penapereira.example.javamonitor.consumer.IntegerConsumer;
 import com.penapereira.example.javamonitor.exception.ForcedStopException;
 import com.penapereira.example.javamonitor.monitor.IntegerStorageNotifier;
@@ -26,19 +29,14 @@ import com.penapereira.example.javamonitor.ui.listeners.MenuItemRestart;
 
 public class UIManagerSwingImpl implements UIManager {
 
+	private Logger log = LoggerFactory.getLogger(UIManagerSwingImpl.class);
+
 	private JFrame frame;
-
 	private List<JPanel> panels;
-
 	private int threadsQuantity;
-
 	private Random random;
-
 	private JLabel lastLabel;
 
-	/**
-	 * Create the application.
-	 */
 	public UIManagerSwingImpl(int threadsQuantity) {
 		this.threadsQuantity = threadsQuantity;
 		this.random = new Random();
@@ -46,9 +44,6 @@ public class UIManagerSwingImpl implements UIManager {
 		initialize();
 	}
 
-	/**
-	 * Initialize the contents of the frame.
-	 */
 	private void initialize() {
 
 		frame = new JFrame();
@@ -71,8 +66,7 @@ public class UIManagerSwingImpl implements UIManager {
 
 			// Building a label for the Pane
 			JLabel label = new JLabel(" ");
-			label.setFont(
-				new Font(label.getFont().getName(), Font.PLAIN, 32));
+			label.setFont(new Font(label.getFont().getName(), Font.PLAIN, 32));
 			label.setForeground(foreground);
 			panel.setLayout(new GridBagLayout());
 			panel.add(label);
@@ -100,14 +94,12 @@ public class UIManagerSwingImpl implements UIManager {
 	}
 
 	protected Color getRandomColor() {
-		return new Color(random.nextInt(256), random.nextInt(256),
-			random.nextInt(256));
+		return new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
 	}
 
 	protected Color getContrastColor(Color color) {
 		int octet = 0;
-		double luminance = 1 - (0.299 * color.getRed()
-			+ 0.587 * color.getGreen() + 0.114 * color.getBlue()) / 255;
+		double luminance = 1 - (0.299 * color.getRed() + 0.587 * color.getGreen() + 0.114 * color.getBlue()) / 255;
 		if (luminance < 0.5) {
 			octet = 0;
 		} else {
@@ -119,9 +111,8 @@ public class UIManagerSwingImpl implements UIManager {
 	@Override
 	public void update(Observable o, Object arg) {
 		if (o instanceof IntegerStorageNotifier) {
-			JOptionPane.showMessageDialog(frame,
-				"All Integers Consumed!");
-			System.out.println("All Integers Consumed!");
+			JOptionPane.showMessageDialog(frame, "All Integers Consumed!");
+			log.info("All Integers Consumed!");
 		}
 		if (o instanceof IntegerConsumer) {
 			if (arg instanceof ForcedStopException) {
@@ -137,8 +128,7 @@ public class UIManagerSwingImpl implements UIManager {
 		}
 	}
 
-	protected synchronized void updatePanel(Observable consumer,
-		String panelLabel) {
+	protected synchronized void updatePanel(Observable consumer, String panelLabel) {
 		int id = ((IntegerConsumer) consumer).getId();
 		JPanel panel = panels.get(id);
 		JLabel label = (JLabel) panel.getComponent(0);
@@ -160,10 +150,9 @@ public class UIManagerSwingImpl implements UIManager {
 	@Override
 	public boolean startSimulation() {
 		JOptionPane.showMessageDialog(frame,
-			"Greetings!\nEach panel observes a Consumer Thread\n"
-				+ "and prints the consumed int.\n\n"
-				+ "Each thread is competing for acquiring a lock\n"
-				+ "over the integer storage monitor.\nClick OK to start!");
+				"Greetings!\nEach panel observes a Consumer Thread\n" + "and prints the consumed int.\n\n"
+						+ "Each thread is competing for acquiring a lock\n"
+						+ "over the integer storage monitor.\nClick OK to start!");
 		return true;
 	}
 
