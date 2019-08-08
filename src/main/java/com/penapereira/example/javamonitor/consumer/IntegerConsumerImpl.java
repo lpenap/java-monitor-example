@@ -1,17 +1,19 @@
 package com.penapereira.example.javamonitor.consumer;
 
-import java.util.Observable;
-
+import com.penapereira.example.javamonitor.Constants;
 import com.penapereira.example.javamonitor.exception.ForcedStopException;
 import com.penapereira.example.javamonitor.monitor.IntegerStorageMonitor;
+import com.penapereira.example.javamonitor.monitor.AbstractObservable;
 
-public class IntegerConsumerImpl extends Observable implements IntegerConsumer {
+public class IntegerConsumerImpl extends AbstractObservable implements IntegerConsumer {
 
 	private IntegerStorageMonitor monitor;
 	private int id;
 	private boolean running;
+	private int consumedInt;
 
 	public IntegerConsumerImpl(IntegerStorageMonitor monitor, int id) {
+		super();
 		this.monitor = monitor;
 		this.id = id;
 		this.running = true;
@@ -25,16 +27,16 @@ public class IntegerConsumerImpl extends Observable implements IntegerConsumer {
 			}
 		} catch (InterruptedException ignored) {
 		} catch (ForcedStopException forcedStopException) {
-			setChanged();
-			notifyObservers(forcedStopException);
+			getSupport().firePropertyChange(Constants.STOP, running, !running);
+			this.running = !running;
 		} finally {
-			deleteObservers();
+			removeAllListeners();
 		}
 	}
 
 	private void processInteger(int consumed) throws InterruptedException {
-		setChanged();
-		notifyObservers(consumed);
+		getSupport().firePropertyChange(Constants.CONSUMED, this.consumedInt, consumed);
+		this.consumedInt = consumed;
 	}
 
 	@Override
@@ -46,4 +48,5 @@ public class IntegerConsumerImpl extends Observable implements IntegerConsumer {
 	public void terminate() {
 		this.running = false;
 	}
+
 }

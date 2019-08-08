@@ -1,10 +1,8 @@
 package com.penapereira.example.javamonitor.monitor;
 
-import java.util.Observable;
-
 import com.penapereira.example.javamonitor.exception.ForcedStopException;
 
-public class IntegerStorageMonitorImpl extends Observable implements IntegerStorageMonitor {
+public class IntegerStorageMonitorImpl implements IntegerStorageMonitor {
 	private static IntegerStorageMonitor _instance = null;
 	private int consumableInts;
 	private int waitMillis;
@@ -40,7 +38,7 @@ public class IntegerStorageMonitorImpl extends Observable implements IntegerStor
 	}
 
 	@Override
-	public synchronized void waitForAllThreads() throws InterruptedException, ForcedStopException {
+	public synchronized void waitForAllIntegersToBeConsumed() throws InterruptedException, ForcedStopException {
 		while (this.consumableInts > 0) {
 			wait();
 			if (forceStop) {

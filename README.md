@@ -1,7 +1,15 @@
 # Java Monitor Example
-Basic example of how to implement the [monitor](https://en.wikipedia.org/wiki/Monitor_%28synchronization%29) synchronization construct to allow mutual exclusion in threads.
+Basic example of how to implement the [monitor](https://en.wikipedia.org/wiki/Monitor_(synchronization)) synchronization construct to allow mutual exclusion in threads.
 
 This is a common construct taught in computer science, and we will cover it's implementation using Java language while rendering a basic graphic interface to represent the simulation being done.
+
+## Quickstart
+Clone and run project with:
+```bash
+git clone git@github.com:lpenap/java-monitor-example.git
+cd java-monitor-example
+./mvnw spring-boot:run
+```
 
 ## Example coverage
 This basic example covers several Java topics:
@@ -9,7 +17,7 @@ This basic example covers several Java topics:
 - [x] Monitor synchronization mechanism for mutual exclusion.
 - [x] Runnable implementation and Threads launching.
 - [x] Thread Waiting and Signaling.
-- [x] Observer/Observable java implementation.
+- [x] Observer pattern implementation in java using [PropertyChangeListener](https://docs.oracle.com/en/java/javase/11/docs/api/java.desktop/java/beans/PropertyChangeListener.html).
 
 ## Problem
 A number of threads wants to consume data from the same place, and each piece of data can be consumed just once. Hence we need to implement a mutual exclusion mechanism, or a Monitor in this case.

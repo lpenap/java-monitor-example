@@ -8,7 +8,7 @@ import com.penapereira.example.javamonitor.consumer.IntegerConsumer;
 import com.penapereira.example.javamonitor.consumer.IntegerConsumerImpl;
 import com.penapereira.example.javamonitor.monitor.IntegerStorageMonitor;
 import com.penapereira.example.javamonitor.monitor.IntegerStorageMonitorImpl;
-import com.penapereira.example.javamonitor.monitor.IntegerStorageNotifier;
+import com.penapereira.example.javamonitor.monitor.EmptyIntegerStorageNotifier;
 import com.penapereira.example.javamonitor.ui.UIManager;
 
 public class SimulationController {
@@ -22,7 +22,7 @@ public class SimulationController {
 
 	private UIManager userInterface;
 
-	IntegerStorageNotifier emptyStorageNotifier;
+	EmptyIntegerStorageNotifier emptyStorageNotifier;
 
 	IntegerStorageMonitor intStorage;
 
@@ -64,11 +64,10 @@ public class SimulationController {
 
 	public void initialize(UIManager userInterface) {
 		// Instance our integer storage with some integers.
-		intStorage = IntegerStorageMonitorImpl.instance(integersToConsume,
-			simulationStepMillis);
+		intStorage = IntegerStorageMonitorImpl.instance(integersToConsume, simulationStepMillis);
 
 		// Launch the notifier.
-		emptyStorageNotifier = new IntegerStorageNotifier(intStorage);
+		emptyStorageNotifier = new EmptyIntegerStorageNotifier(intStorage);
 		(new Thread(emptyStorageNotifier)).start();
 
 		// create main interface
@@ -76,14 +75,13 @@ public class SimulationController {
 		this.userInterface.activate();
 
 		// Register main interface as an observer on the storage notifier
-		emptyStorageNotifier.addObserver(this.userInterface);
+		emptyStorageNotifier.addPropertyChangeListener(this.userInterface);
 
 		// Launch all consumer threads.
 		consumers = new ArrayList<>();
 		for (int i = 0; i < consumersQuantity; i++) {
-			IntegerConsumer consumer = new IntegerConsumerImpl(intStorage,
-				i);
-			consumer.addObserver(this.userInterface);
+			IntegerConsumer consumer = new IntegerConsumerImpl(intStorage, i);
+			consumer.addPropertyChangeListener(this.userInterface);
 			consumers.add(consumer);
 			(new Thread(consumer)).start();
 		}

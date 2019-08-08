@@ -1,8 +1,8 @@
 package com.penapereira.example.javamonitor.ui;
 
-import java.util.Observer;
+import java.beans.PropertyChangeListener;
 
-public interface UIManager extends Observer {
+public interface UIManager extends PropertyChangeListener {
 
 	public void activate();
 

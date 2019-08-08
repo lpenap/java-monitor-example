@@ -5,9 +5,9 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
 import java.util.Random;
 
 import javax.swing.JFrame;
@@ -22,8 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.penapereira.example.javamonitor.consumer.IntegerConsumer;
-import com.penapereira.example.javamonitor.exception.ForcedStopException;
-import com.penapereira.example.javamonitor.monitor.IntegerStorageNotifier;
 import com.penapereira.example.javamonitor.ui.listeners.MenuItemAbout;
 import com.penapereira.example.javamonitor.ui.listeners.MenuItemRestart;
 
@@ -108,28 +106,8 @@ public class UIManagerSwingImpl implements UIManager {
 		return new Color(octet, octet, octet);
 	}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		if (o instanceof IntegerStorageNotifier) {
-			JOptionPane.showMessageDialog(frame, "All Integers Consumed!");
-			log.info("All Integers Consumed!");
-		}
-		if (o instanceof IntegerConsumer) {
-			if (arg instanceof ForcedStopException) {
-				updatePanel(o, " ");
-			} else {
-				if ((int) arg == 0) {
-					updatePanel(o, "finished");
-				} else {
-					clearLastLabel();
-					updatePanel(o, "" + (int) arg);
-				}
-			}
-		}
-	}
-
-	protected synchronized void updatePanel(Observable consumer, String panelLabel) {
-		int id = ((IntegerConsumer) consumer).getId();
+	protected synchronized void updatePanel(IntegerConsumer consumer, String panelLabel) {
+		int id = consumer.getId();
 		JPanel panel = panels.get(id);
 		JLabel label = (JLabel) panel.getComponent(0);
 		label.setText(panelLabel);
@@ -154,6 +132,22 @@ public class UIManagerSwingImpl implements UIManager {
 						+ "Each thread is competing for acquiring a lock\n"
 						+ "over the integer storage monitor.\nClick OK to start!");
 		return true;
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent event) {
+		String propertyName = event.getPropertyName();
+
+		if ("finished".equals(propertyName)) {
+			JOptionPane.showMessageDialog(frame, "All Integers Consumed!");
+			log.info("All Integers Consumed!");
+
+		} else if ("consumed".equals(propertyName)) {
+			int intConsumed = (int) event.getNewValue();
+			String newLabel = intConsumed == 0 ? "finished" : "" + intConsumed;
+			clearLastLabel();
+			updatePanel((IntegerConsumer) event.getSource(), newLabel);
+		}
 	}
 
 }
