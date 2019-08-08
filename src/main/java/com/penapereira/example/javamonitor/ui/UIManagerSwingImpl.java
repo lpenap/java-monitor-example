@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import com.penapereira.example.javamonitor.consumer.IntegerConsumer;
 import com.penapereira.example.javamonitor.ui.listeners.MenuItemAbout;
-import com.penapereira.example.javamonitor.ui.listeners.MenuItemRestart;
 
 public class UIManagerSwingImpl implements UIManager {
 
@@ -77,14 +76,16 @@ public class UIManagerSwingImpl implements UIManager {
 		JMenuBar menuBar = new JMenuBar();
 
 		JMenu menu = new JMenu("Monitor");
-		JMenuItem restartItem = new JMenuItem("Restart");
 		JMenuItem aboutItem = new JMenuItem("About");
 
 		aboutItem.addActionListener(new MenuItemAbout(this.frame));
-		restartItem.addActionListener(new MenuItemRestart(this.frame));
 
-		menu.add(restartItem);
-		menu.addSeparator();
+		// JMenuItem restartItem = new JMenuItem("Restart");
+		// restartItem.addActionListener(new MenuItemRestart(this.frame));
+
+		// menu.add(restartItem);
+		// menu.addSeparator();
+
 		menu.add(aboutItem);
 		menuBar.add(menu);
 

@@ -16,7 +16,7 @@ public class MenuItemRestart implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		JOptionPane.showMessageDialog(parent, "Not yet implemented!\nPlease close the window\nand restart the app...");
+		JOptionPane.showMessageDialog(parent, "Not yet implemented!\nPlease close the window\nand restart the app...\n\nIf you want to help with this\n,make a pull request\nand I will look into it.");
 	}
 
 }
