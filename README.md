@@ -1,4 +1,6 @@
 # Java Monitor Example
+[![Build Status](https://travis-ci.org/lpenap/java-monitor-example.svg?branch=master)](https://travis-ci.org/lpenap/java-monitor-example)
+
 Basic example of how to implement the [monitor synchronization construct](https://en.wikipedia.org/wiki/Monitor_(synchronization))  to allow mutual exclusion in threads.
 
 This is a common construct taught in computer science, and we will cover it's implementation using Java language while rendering a basic graphic interface to represent the simulation being done.
