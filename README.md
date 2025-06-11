@@ -10,7 +10,7 @@ This is a common construct taught in computer science, and we will cover it's im
 ## Quickstart
 
 #### Requirements
-* JDK 11 
+* JDK 21
 
 Clone and run project with:
 ```bash
@@ -31,7 +31,7 @@ This basic example covers several Java topics:
 - [x] Monitor synchronization mechanism for mutual exclusion.
 - [x] Runnable implementation and Threads launching.
 - [x] Thread Waiting and Signaling.
-- [x] Observer pattern implementation in java using [PropertyChangeListener](https://docs.oracle.com/en/java/javase/11/docs/api/java.desktop/java/beans/PropertyChangeListener.html).
+ - [x] Observer pattern implementation in java using [PropertyChangeListener](https://docs.oracle.com/en/java/javase/21/docs/api/java.desktop/java/beans/PropertyChangeListener.html).
 
 ### Problem
 A number of threads wants to consume data from the same place, and each piece of data can be consumed just once. Hence we need to implement a mutual exclusion mechanism, or a Monitor in this case.
@@ -67,9 +67,9 @@ Java have a simple way to implement this, and it is accomplished using `synchron
 This is implemented by the `IntegerStorageMonitorImpl` class.
 
 ### Runnables and threads
-The basic way to implement multithreading in Java is to implement the [Runnable](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Runnable.html) interface:
+ The basic way to implement multithreading in Java is to implement the [Runnable](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Runnable.html) interface:
 * We implement the Runnable interface and implement the logic in its `run()` method.
-* We instantiate the [Thread](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Thread.html) class and pass an instance of our runnable to it. See `SimulationController` class.
+ * We instantiate the [Thread](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Thread.html) class and pass an instance of our runnable to it. See `SimulationController` class.
 * We call the `start` method of our thread class in order to **asynchronously** start the thread.
 * Our code in the Runnable's `run()` method will be executed.
 * Please note, that each thread is responsible for finishing in a clean way. Threads caught in loops or with unfinished conditions, will certainly create a memory leak. Assigning `null` to a thread reference will not get rid of the thread and it will not get caught by the GC.
