@@ -63,7 +63,7 @@ public class SimulationController {
 	}
 
 	public void initialize(UIManager userInterface) {
-		// Instance our integer storage with some integers.
+                // Instantiate our integer storage with some integers.
 		intStorage = IntegerStorageMonitorImpl.instance(integersToConsume, simulationStepMillis);
 
 		// Launch the notifier.
