@@ -79,4 +79,14 @@ public class IntegerConsumerImplTests {
 
         assertTrue(stopped[0]);
     }
+    
+    @Test
+    public void runForcedStopWithNoListeners() {
+        TestMonitor monitor = new TestMonitor(List.of(1));
+        monitor.setThrowOnConsume(true);
+        IntegerConsumerImpl consumer = new IntegerConsumerImpl(monitor, 1);
+        consumer.run();
+        assertTrue(true);
+    }
 }
+
