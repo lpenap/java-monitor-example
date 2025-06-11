@@ -1,6 +1,8 @@
 [![CircleCI](https://dl.circleci.com/status-badge/img/circleci/2e6Hm8LHAzuw5AQRrJLyG6/UoewhgzBXwCsmVqmb3sy5o/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/2e6Hm8LHAzuw5AQRrJLyG6/UoewhgzBXwCsmVqmb3sy5o/tree/master)
+[![Build](https://github.com/lpenap/java-monitor-example/actions/workflows/maven.yml/badge.svg)](https://github.com/lpenap/java-monitor-example/actions/workflows/maven.yml)
 [![GitHub release](https://img.shields.io/github/release/lpenap/java-monitor-example)](//github.com/lpenap/java-monitor-example/releases/latest)
 [![codebeat badge](https://codebeat.co/badges/07bc5a39-cd80-49b7-a006-431ee69f53e5)](https://codebeat.co/projects/github-com-lpenap-java-monitor-example)
+![Coverage](.github/badges/jacoco.svg)
 
 # Java Monitor Example
 Basic example of how to implement the [monitor synchronization construct](https://en.wikipedia.org/wiki/Monitor_(synchronization))  to allow mutual exclusion in threads.
