@@ -1,6 +1,7 @@
 package com.penapereira.example.javamonitor.monitor;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.beans.PropertyChangeEvent;
@@ -46,5 +47,24 @@ public class EmptyIntegerStorageNotifierTests {
         monitor.forceStop();
         t.join(1000);
         assertFalse(notified.get());
+    }
+
+    private static class InterruptingMonitor extends IntegerStorageMonitorImpl {
+        InterruptingMonitor() { super(0, 0); }
+        @Override
+        public synchronized void waitForAllIntegersToBeConsumed() throws InterruptedException {
+            throw new InterruptedException();
+        }
+    }
+
+    @Test
+    public void runHandlesInterruptedExceptionAndRemovesListeners() {
+        InterruptingMonitor monitor = new InterruptingMonitor();
+        EmptyIntegerStorageNotifier notifier = new EmptyIntegerStorageNotifier(monitor);
+        notifier.addPropertyChangeListener(evt -> {});
+
+        notifier.run();
+
+        assertEquals(0, notifier.getSupport().getPropertyChangeListeners().length);
     }
 }

@@ -62,6 +62,8 @@
                                        <excludes>
                                                <exclude>com/penapereira/example/javamonitor/ui/**</exclude>
                                                <exclude>com/penapereira/example/javamonitor/ui/listeners/**</exclude>
+                                               <exclude>com/penapereira/example/javamonitor/JavaThreadsMonitorExampleApplication*</exclude>
+                                               <exclude>com/penapereira/example/javamonitor/Constants*</exclude>
                                        </excludes>
                                </configuration>
                                <executions>
