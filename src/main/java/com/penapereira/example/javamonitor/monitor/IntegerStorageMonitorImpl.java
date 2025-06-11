@@ -53,14 +53,14 @@ public class IntegerStorageMonitorImpl implements IntegerStorageMonitor {
 		notifyAll();
 	}
 
-	@Override
-	public void forceStop() {
-		forceStop = true;
-		notifyAll();
-	}
+       @Override
+       public synchronized void forceStop() {
+               forceStop = true;
+               notifyAll();
+       }
 
-	@Override
-	public boolean hasIntegers() {
-		return consumableInts > 0;
-	}
+       @Override
+       public synchronized boolean hasIntegers() {
+               return consumableInts > 0;
+       }
 }
