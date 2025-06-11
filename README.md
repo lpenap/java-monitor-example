@@ -22,7 +22,7 @@ Running the project should render a graphic interface with a visual
 representation of this simulation:
 * The main window shows a number of random-colored panels.
 * The window will *observe* each *observable* `IntegerConsumerImpl` and will update the matching panel with the corresponding consumed integer.
-* Th window will also observe an `EmptyIntegerStorageNotifier` to detect when all the integers are consumed.
+* The window will also observe an `EmptyIntegerStorageNotifier` to detect when all the integers are consumed.
 
 
 ## Example coverage
@@ -92,7 +92,7 @@ To implement this, we need to code the following behavior:
   
 ### Observer/Observable implementation
 The java implementation of the [Observer](https://en.wikipedia.org/wiki/Observer_pattern) pattern is quite easy. We need first to design which classes will be *observable* and which classes will be the *observer(s)*. In this example:
-* Our user interface will be the general observer: It needs to "observe" the consumer threads in order to update the visuas, and the storage notifier thread in order to detect when the simulation is finished.
+* Our user interface will be the general observer: It needs to "observe" the consumer threads in order to update the visuals, and the storage notifier thread in order to detect when the simulation is finished.
 * The observable work is implemented in `AbstractObservable` using the `PropertyChangeListener` where the observable must maintain an internal reference of a `PropertyChangeSupport` instace and use it to fire notifications when a property changes:
 ```java
 class MyObservable {
