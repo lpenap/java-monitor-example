@@ -2,6 +2,7 @@ package com.penapereira.example.javamonitor.monitor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -86,5 +87,17 @@ public class IntegerStorageMonitorImplTests {
         monitor.forceStop();
         t.join(1000);
         assertFalse(t.isAlive());
+}
+
+    @Test
+    public void instanceReturnsExistingSingleton() throws Exception {
+        java.lang.reflect.Field f = IntegerStorageMonitorImpl.class.getDeclaredField("_instance");
+        f.setAccessible(true);
+        f.set(null, null);
+
+        IntegerStorageMonitor first = IntegerStorageMonitorImpl.instance(1, 0);
+        IntegerStorageMonitor second = IntegerStorageMonitorImpl.instance(2, 5);
+
+        assertSame(first, second);
     }
 }
