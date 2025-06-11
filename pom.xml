@@ -58,6 +58,12 @@
                                <groupId>org.jacoco</groupId>
                                <artifactId>jacoco-maven-plugin</artifactId>
                                <version>0.8.12</version>
+                               <configuration>
+                                       <excludes>
+                                               <exclude>com/penapereira/example/javamonitor/ui/**</exclude>
+                                               <exclude>com/penapereira/example/javamonitor/ui/listeners/**</exclude>
+                                       </excludes>
+                               </configuration>
                                <executions>
                                        <execution>
                                                <goals>
