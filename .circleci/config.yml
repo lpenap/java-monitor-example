@@ -1,10 +1,8 @@
-# This config was automatically generated from your source code
-# Stacks detected: deps:java:.
 version: 2.1
 jobs:
   test-java:
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:11.0
     steps:
       - checkout
       - run:
