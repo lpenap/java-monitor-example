@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   test-java:
     docker:
-      - image: cimg/openjdk:21.0
+      - image: cimg/openjdk:25.0
     steps:
       - checkout
       - run:
