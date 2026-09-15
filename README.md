@@ -248,6 +248,7 @@ The critical section is `consumableInts--`: because it executes under the lock, 
 * **Mesa semantics require a loop.** Java's `wait()` follows Mesa (signal-and-continue) rather than Hoare (signal-and-wait) semantics: a woken thread is not guaranteed that the condition still holds by the time it re-acquires the lock, and spurious wake-ups are permitted. This is why both waits are written as `while (condition) wait();` and never as `if`.
 * **Sleeping while holding the lock is deliberate here and wrong elsewhere.** `Thread.sleep(waitMillis)` inside `consumeInt()` keeps the lock held for half a second so that a human can see one panel at a time light up. In real code, holding a lock while blocking is a classic throughput killer; the delay would be moved outside the `synchronized` region.
 * `hasIntegers()` is `synchronized` too, so the read of `consumableInts` is guaranteed to see the latest write from any other thread. Without the lock (or `volatile`) the Java Memory Model would allow a stale read.
+* **Virtual threads.** Since JDK 24 ([JEP 491](https://openjdk.org/jeps/491)) the JVM tracks monitor ownership by virtual thread rather than by carrier thread, so a virtual thread that blocks inside a `synchronized` method, as the consumers do in `consumeInt()`, no longer pins its carrier. On JDK 25 the consumers could run as virtual threads without any change to the monitor.
 
 ## 3. Runnables and thread launching
 
@@ -468,6 +469,7 @@ sequenceDiagram
 * **Why `notifyAll()` everywhere.** Consumers waiting on `started` and the notifier waiting on `consumableInts` share the same intrinsic lock and therefore the same wait set. A `notify()` in `setStarted()` could wake the notifier instead of a consumer, and the simulation would stall. `notifyAll()` costs a few redundant wake-ups but is always correct.
 * **The start gate is a barrier.** Parking every consumer on `started` and releasing them at once is what makes the first few hundred milliseconds of the simulation interesting: nine threads race for a lock that only one can hold.
 * **Cancellation as an exception.** `forceStop()` does not itself throw; it sets a flag and wakes everyone. Each waiter checks the flag immediately after `wait()` returns and throws. This keeps the cancellation decision inside the monitor, where the state is protected, and lets each `Runnable` decide how to react in its `catch` block.
+* **Explicit versus implicit signaling.** This is an *explicit-signal* monitor: the programmer decides where `notifyAll()` is called, and forgetting one is a classic source of deadlocks. The alternative, an *implicit-signal* monitor with a `waituntil(condition)` statement, removes that class of bug at a run-time cost; Buhr and Harji (2005) study the trade-off, and Ferles et al. (2022) show how efficient explicit-signal code can be synthesised from an implicit specification. See the references.
 
 ## 5. Observer pattern with `PropertyChangeListener`
 
@@ -676,4 +678,10 @@ Because the worker threads depend only on `Observable`, and the window depends o
 * The Java Tutorials, [Concurrency: Synchronized Methods](https://docs.oracle.com/javase/tutorial/essential/concurrency/syncmeth.html) and [Guarded Blocks](https://docs.oracle.com/javase/tutorial/essential/concurrency/guardmeth.html).
 * E. Gamma, R. Helm, R. Johnson, J. Vlissides, *Design Patterns: Elements of Reusable Object-Oriented Software*, 1994. Chapter 5, "Observer".
 * The Java Tutorials, [Concurrency in Swing](https://docs.oracle.com/javase/tutorial/uiswing/concurrency/index.html).
+* T. Astarte, ["From Monitors to Monitors: A Primitive History"](https://doi.org/10.1007/s11023-023-09632-2), *Minds and Machines*, 2023. Open access. How the monitor concept emerged between Dijkstra, Brinch Hansen and Hoare.
+* P. A. Buhr, M. Fortier, M. H. Coffin, ["Monitor Classification"](https://doi.org/10.1145/214037.214100), *ACM Computing Surveys* 27(1), 1995. The taxonomy of monitor signalling disciplines, including the Hoare and Mesa variants discussed in topic 2.
+* P. A. Buhr, A. S. Harji, ["Implicit-Signal Monitors"](https://doi.org/10.1145/1108970.1108975), *ACM TOPLAS* 27(6), 2005.
+* K. Ferles, B. Sepanski, R. Krishnan, J. Bornholt, I. Dillig, ["Synthesizing Fine-Grained Synchronization Protocols for Implicit Monitors"](https://doi.org/10.1145/3527311), *OOPSLA*, 2022.
+* H. Evrard, A. F. Donaldson, ["Analysing futex-based synchronisation primitives using model checking"](https://doi.org/10.1007/s10009-025-00783-4), *STTT*, 2025. Mutex and condition-variable implementations modelled in Promela and verified with Spin, written with teaching in mind.
+* OpenJDK, [JEP 491: Synchronize Virtual Threads without Pinning](https://openjdk.org/jeps/491), JDK 24, 2025.
 * API documentation: [`Runnable`](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Runnable.html), [`Thread`](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Thread.html), [`PropertyChangeListener`](https://docs.oracle.com/en/java/javase/25/docs/api/java.desktop/java/beans/PropertyChangeListener.html), [`PropertyChangeSupport`](https://docs.oracle.com/en/java/javase/25/docs/api/java.desktop/java/beans/PropertyChangeSupport.html).
