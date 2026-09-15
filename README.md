@@ -12,7 +12,7 @@ This is a common construct taught in computer science, and we will cover it's im
 ## Quickstart
 
 #### Requirements
-* JDK 21
+* JDK 25
 
 Clone and run project with:
 ```bash
@@ -33,7 +33,7 @@ This basic example covers several Java topics:
 - [x] Monitor synchronization mechanism for mutual exclusion.
 - [x] Runnable implementation and Threads launching.
 - [x] Thread Waiting and Signaling.
- - [x] Observer pattern implementation in java using [PropertyChangeListener](https://docs.oracle.com/en/java/javase/21/docs/api/java.desktop/java/beans/PropertyChangeListener.html).
+ - [x] Observer pattern implementation in java using [PropertyChangeListener](https://docs.oracle.com/en/java/javase/25/docs/api/java.desktop/java/beans/PropertyChangeListener.html).
 
 ### Problem
 A number of threads wants to consume data from the same place, and each piece of data can be consumed just once. Hence we need to implement a mutual exclusion mechanism, or a Monitor in this case.
@@ -56,17 +56,7 @@ classDiagram
     }
 
     class SimulationController {
-        -int consumersQuantity
-        -int integersToConsume
-        -int simulationStepMillis
-        -UIManager userInterface
-        -EmptyIntegerStorageNotifier emptyStorageNotifier
-        -IntegerStorageMonitor intStorage
-        -List<IntegerConsumer> consumers
-        +static instance()
-        +initialize(UIManager)
-        +startSimulation()
-        +stopSimulation()
+
     }
 
     class IntegerStorageMonitor {
@@ -79,29 +69,13 @@ classDiagram
     <<interface>> IntegerStorageMonitor
 
     class IntegerStorageMonitorImpl {
-        -int consumableInts
-        -int waitMillis
-        -boolean started
-        -boolean forceStop
-        +consumeInt(): int
-        +waitForAllIntegersToBeConsumed()
-        +setStarted(boolean)
-        +forceStop()
-        +hasIntegers(): boolean
     }
 
     class Observable {
-        +getSupport(): PropertyChangeSupport
-        +addPropertyChangeListener(PropertyChangeListener)
-        +removePropertyChangeListener(PropertyChangeListener)
     }
     <<interface>> Observable
 
     class AbstractObservable {
-        -PropertyChangeSupport support
-        +getSupport(): PropertyChangeSupport
-        +addPropertyChangeListener(PropertyChangeListener)
-        +removePropertyChangeListener(PropertyChangeListener)
     }
 
     class IntegerConsumer {
@@ -112,45 +86,18 @@ classDiagram
     <<interface>> IntegerConsumer
 
     class IntegerConsumerImpl {
-        -IntegerStorageMonitor monitor
-        -int id
-        -boolean running
-        -int consumedInt
-        +run()
-        +getId(): int
-        +terminate()
+
     }
 
     class EmptyIntegerStorageNotifier {
-        -IntegerStorageMonitor intStorage
-        +run()
     }
 
     class UIManager {
-        +activate()
-        +startSimulation(): boolean
-        +propertyChange(PropertyChangeEvent)
     }
     <<interface>> UIManager
 
     class UIManagerSwingImpl {
-        -JFrame frame
-        -List<JPanel> panels
-        -Random random
-        +activate()
-        +startSimulation(): boolean
-        +propertyChange(PropertyChangeEvent)
     }
-
-    class Runnable {
-        +run()
-    }
-    <<interface>> Runnable
-
-    class PropertyChangeListener {
-        +propertyChange(PropertyChangeEvent)
-    }
-    <<interface>> PropertyChangeListener
 
     JavaThreadsMonitorExampleApplication --> SimulationController : configures
     SimulationController o--> IntegerStorageMonitor : monitor
@@ -162,15 +109,12 @@ classDiagram
     IntegerConsumerImpl --|> AbstractObservable
     IntegerConsumerImpl ..|> IntegerConsumer
     EmptyIntegerStorageNotifier --|> AbstractObservable
-    EmptyIntegerStorageNotifier ..|> Runnable
     EmptyIntegerStorageNotifier --> IntegerStorageMonitor : waits on
 
     AbstractObservable ..|> Observable
     IntegerConsumer ..|> Observable
-    IntegerConsumer ..|> Runnable
 
     UIManagerSwingImpl ..|> UIManager
-    UIManager ..|> PropertyChangeListener
     UIManagerSwingImpl --> IntegerConsumer : observes
     UIManagerSwingImpl --> EmptyIntegerStorageNotifier : observes
 ```
@@ -199,9 +143,9 @@ Java have a simple way to implement this, and it is accomplished using `synchron
 This is implemented by the `IntegerStorageMonitorImpl` class.
 
 ### Runnables and threads
- The basic way to implement multithreading in Java is to implement the [Runnable](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Runnable.html) interface:
+ The basic way to implement multithreading in Java is to implement the [Runnable](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Runnable.html) interface:
 * We implement the Runnable interface and implement the logic in its `run()` method.
- * We instantiate the [Thread](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Thread.html) class and pass an instance of our runnable to it. See `SimulationController` class.
+ * We instantiate the [Thread](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Thread.html) class and pass an instance of our runnable to it. See `SimulationController` class.
 * We call the `start` method of our thread class in order to **asynchronously** start the thread.
 * Our code in the Runnable's `run()` method will be executed.
 * Please note, that each thread is responsible for finishing in a clean way. Threads caught in loops or with unfinished conditions, will certainly create a memory leak. Assigning `null` to a thread reference will not get rid of the thread and it will not get caught by the GC.
