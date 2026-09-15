@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.penapereira.example.javamonitor.consumer.IntegerConsumer;
 import com.penapereira.example.javamonitor.ui.listeners.MenuItemAbout;
+import com.penapereira.example.javamonitor.ui.listeners.MenuItemRestart;
 
 public class UIManagerSwingImpl implements UIManager {
 
@@ -33,9 +34,17 @@ public class UIManagerSwingImpl implements UIManager {
 	private int threadsQuantity;
 	private Random random;
 	private JLabel lastLabel;
+	private Runnable restartAction;
+	private int run = 1;
 
 	public UIManagerSwingImpl(int threadsQuantity) {
+		this(threadsQuantity, () -> {
+		});
+	}
+
+	public UIManagerSwingImpl(int threadsQuantity, Runnable restartAction) {
 		this.threadsQuantity = threadsQuantity;
+		this.restartAction = restartAction;
 		this.random = new Random();
 		this.lastLabel = null;
 		initialize();
@@ -43,7 +52,7 @@ public class UIManagerSwingImpl implements UIManager {
 
 	private void initialize() {
 
-		frame = new JFrame();
+		frame = new JFrame("Java Monitor Example - run " + run);
 		frame.setBounds(100, 100, 450, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(new GridLayout(3, 3, 2, 2));
@@ -80,12 +89,11 @@ public class UIManagerSwingImpl implements UIManager {
 
 		aboutItem.addActionListener(new MenuItemAbout(this.frame));
 
-		// JMenuItem restartItem = new JMenuItem("Restart");
-		// restartItem.addActionListener(new MenuItemRestart(this.frame));
+		JMenuItem restartItem = new JMenuItem("Restart");
+		restartItem.addActionListener(new MenuItemRestart(this.restartAction));
 
-		// menu.add(restartItem);
-		// menu.addSeparator();
-
+		menu.add(restartItem);
+		menu.addSeparator();
 		menu.add(aboutItem);
 		menuBar.add(menu);
 
@@ -119,6 +127,15 @@ public class UIManagerSwingImpl implements UIManager {
 		if (this.lastLabel != null) {
 			lastLabel.setText(" ");
 		}
+	}
+
+	@Override
+	public synchronized void reset() {
+		for (JPanel panel : panels) {
+			((JLabel) panel.getComponent(0)).setText(" ");
+		}
+		lastLabel = null;
+		frame.setTitle("Java Monitor Example - run " + (++run));
 	}
 
 	@Override

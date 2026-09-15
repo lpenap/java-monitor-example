@@ -2,6 +2,7 @@ package com.penapereira.example.javamonitor.monitor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -90,14 +91,27 @@ public class IntegerStorageMonitorImplTests {
 }
 
     @Test
-    public void instanceReturnsExistingSingleton() throws Exception {
-        java.lang.reflect.Field f = IntegerStorageMonitorImpl.class.getDeclaredField("_instance");
-        f.setAccessible(true);
-        f.set(null, null);
+    public void instanceReturnsExistingSingleton() {
+        IntegerStorageMonitorImpl.reset();
 
         IntegerStorageMonitor first = IntegerStorageMonitorImpl.instance(1, 0);
         IntegerStorageMonitor second = IntegerStorageMonitorImpl.instance(2, 5);
 
         assertSame(first, second);
+    }
+
+    @Test
+    public void resetAllowsNewInstanceWithNewParameters() throws Exception {
+        IntegerStorageMonitorImpl.reset();
+        IntegerStorageMonitor first = IntegerStorageMonitorImpl.instance(1, 0);
+        first.forceStop();
+
+        IntegerStorageMonitorImpl.reset();
+        IntegerStorageMonitor second = IntegerStorageMonitorImpl.instance(2, 0);
+
+        assertNotSame(first, second);
+        second.setStarted(true);
+        assertEquals(2, second.consumeInt());
+        IntegerStorageMonitorImpl.reset();
     }
 }

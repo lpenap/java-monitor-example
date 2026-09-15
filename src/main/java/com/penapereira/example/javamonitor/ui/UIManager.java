@@ -8,4 +8,6 @@ public interface UIManager extends PropertyChangeListener {
 
 	public boolean startSimulation();
 
+	public void reset();
+
 }

@@ -8,7 +8,6 @@ public class IntegerStorageMonitorImpl implements IntegerStorageMonitor {
 	private int waitMillis;
 	private boolean started;
 	private boolean forceStop;
-	public int FORCE_STOP_VALUE = -99;
 
 	protected IntegerStorageMonitorImpl(int consumableInts, int waitMillis) {
 		this.consumableInts = consumableInts;
@@ -22,6 +21,15 @@ public class IntegerStorageMonitorImpl implements IntegerStorageMonitor {
 			_instance = new IntegerStorageMonitorImpl(consumableInts, waitMillis);
 		}
 		return _instance;
+	}
+
+	/**
+	 * Discards the current singleton so that the next call to
+	 * {@link #instance(int, int)} builds a fresh monitor. A stopped monitor
+	 * cannot be reused because {@code forceStop} is one-way.
+	 */
+	public static void reset() {
+		_instance = null;
 	}
 
 	@Override
@@ -53,14 +61,14 @@ public class IntegerStorageMonitorImpl implements IntegerStorageMonitor {
 		notifyAll();
 	}
 
-       @Override
-       public synchronized void forceStop() {
-               forceStop = true;
-               notifyAll();
-       }
+	@Override
+	public synchronized void forceStop() {
+		forceStop = true;
+		notifyAll();
+	}
 
-       @Override
-       public synchronized boolean hasIntegers() {
-               return consumableInts > 0;
-       }
+	@Override
+	public synchronized boolean hasIntegers() {
+		return consumableInts > 0;
+	}
 }

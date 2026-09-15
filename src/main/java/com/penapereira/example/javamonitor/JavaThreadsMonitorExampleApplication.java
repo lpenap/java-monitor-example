@@ -26,7 +26,8 @@ public class JavaThreadsMonitorExampleApplication {
 		simulationController.setIntegersToConsume(Constants.INTEGERS_TO_CONSUME);
 		simulationController.setSimulationStepMillis(Constants.STEP_MILLIS);
 
-		simulationController.initialize(new UIManagerSwingImpl(Constants.CONSUMERS_COUNT));
+		simulationController.initialize(
+				new UIManagerSwingImpl(Constants.CONSUMERS_COUNT, simulationController::restartSimulation));
 		simulationController.startSimulation();
 	}
 

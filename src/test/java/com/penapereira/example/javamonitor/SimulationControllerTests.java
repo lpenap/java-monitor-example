@@ -1,13 +1,19 @@
 package com.penapereira.example.javamonitor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.beans.PropertyChangeEvent;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +27,9 @@ public class SimulationControllerTests {
         boolean activated = false;
         boolean startCalled = false;
         boolean startReturn = true;
+        boolean resetCalled = false;
+        AtomicInteger consumedEvents = new AtomicInteger();
+        AtomicBoolean finished = new AtomicBoolean(false);
 
         @Override
         public void activate() { activated = true; }
@@ -29,25 +38,16 @@ public class SimulationControllerTests {
         public boolean startSimulation() { startCalled = true; return startReturn; }
 
         @Override
-        public void propertyChange(PropertyChangeEvent evt) { }
-    }
+        public void reset() { resetCalled = true; }
 
-    private static class DummyConsumer implements IntegerConsumer {
-        boolean terminated = false;
-        int id;
-        DummyConsumer(int id) { this.id = id; }
         @Override
-        public void run() { }
-        @Override
-        public int getId() { return id; }
-        @Override
-        public void terminate() { terminated = true; }
-        @Override
-        public java.beans.PropertyChangeSupport getSupport() { return new java.beans.PropertyChangeSupport(this); }
-        @Override
-        public void addPropertyChangeListener(java.beans.PropertyChangeListener pcl) { }
-        @Override
-        public void removePropertyChangeListener(java.beans.PropertyChangeListener pcl) { }
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (Constants.CONSUMED.equals(evt.getPropertyName())) {
+                consumedEvents.incrementAndGet();
+            } else if (Constants.FINISHED.equals(evt.getPropertyName())) {
+                finished.set(true);
+            }
+        }
     }
 
     private static class DummyMonitor implements IntegerStorageMonitor {
@@ -65,27 +65,53 @@ public class SimulationControllerTests {
         @Override public synchronized boolean hasIntegers() { return !consumed; }
     }
 
+    private SimulationController sc;
+
     @BeforeEach
-    public void resetSingleton() throws Exception {
+    public void resetSingletons() throws Exception {
         Field f = SimulationController.class.getDeclaredField("_uniqueInstance");
         f.setAccessible(true);
         f.set(null, null);
-        Field m = IntegerStorageMonitorImpl.class.getDeclaredField("_instance");
-        m.setAccessible(true);
-        m.set(null, null);
+        IntegerStorageMonitorImpl.reset();
+        sc = SimulationController.instance();
+    }
+
+    @AfterEach
+    public void stopLeftoverThreads() throws Exception {
+        sc.stopSimulation();
+        joinAll();
+    }
+
+    private void joinAll() throws InterruptedException {
+        if (sc.threads == null) {
+            return;
+        }
+        for (Thread t : sc.threads) {
+            t.join(2000);
+        }
+    }
+
+    private void setField(String name, Object value) throws Exception {
+        Field field = SimulationController.class.getDeclaredField(name);
+        field.setAccessible(true);
+        field.set(sc, value);
+    }
+
+    private DummyUI initializeRealSimulation(int consumers, int integers) {
+        sc.setConsumersQuantity(consumers);
+        sc.setIntegersToConsume(integers);
+        sc.setSimulationStepMillis(0);
+        DummyUI ui = new DummyUI();
+        sc.initialize(ui);
+        return ui;
     }
 
     @Test
     public void startSimulationStartsMonitorWhenUiReturnsTrue() throws Exception {
         DummyUI ui = new DummyUI();
         DummyMonitor monitor = new DummyMonitor();
-        SimulationController sc = SimulationController.instance();
-        Field uiField = SimulationController.class.getDeclaredField("userInterface");
-        uiField.setAccessible(true);
-        uiField.set(sc, ui);
-        Field monField = SimulationController.class.getDeclaredField("intStorage");
-        monField.setAccessible(true);
-        monField.set(sc, monitor);
+        setField("userInterface", ui);
+        setField("intStorage", monitor);
 
         sc.startSimulation();
 
@@ -94,25 +120,21 @@ public class SimulationControllerTests {
     }
 
     @Test
-    public void stopSimulationTerminatesAllConsumers() throws Exception {
-        SimulationController sc = SimulationController.instance();
-        List<IntegerConsumer> consumers = new ArrayList<>();
-        consumers.add(new DummyConsumer(0));
-        consumers.add(new DummyConsumer(1));
-        Field consField = SimulationController.class.getDeclaredField("consumers");
-        consField.setAccessible(true);
-        consField.set(sc, consumers);
+    public void startSimulationLeavesMonitorStoppedWhenUiReturnsFalse() throws Exception {
+        DummyUI ui = new DummyUI();
+        ui.startReturn = false;
+        DummyMonitor monitor = new DummyMonitor();
+        setField("userInterface", ui);
+        setField("intStorage", monitor);
 
-        sc.stopSimulation();
+        sc.startSimulation();
 
-        for (IntegerConsumer ic : consumers) {
-            assertTrue(((DummyConsumer)ic).terminated);
-        }
+        assertTrue(ui.startCalled);
+        assertFalse(monitor.started);
     }
 
     @Test
     public void gettersAndSettersWork() {
-        SimulationController sc = SimulationController.instance();
         sc.setConsumersQuantity(2);
         sc.setIntegersToConsume(3);
         sc.setSimulationStepMillis(4);
@@ -123,7 +145,6 @@ public class SimulationControllerTests {
 
     @Test
     public void initializeCreatesConsumersAndActivatesUi() throws Exception {
-        SimulationController sc = SimulationController.instance();
         sc.setConsumersQuantity(1);
         sc.setIntegersToConsume(1);
         sc.setSimulationStepMillis(0);
@@ -135,13 +156,99 @@ public class SimulationControllerTests {
         inst.set(null, monitor);
 
         sc.initialize(ui);
-        Thread.sleep(50); // allow spawned threads to finish
-
-        Field consField = SimulationController.class.getDeclaredField("consumers");
-        consField.setAccessible(true);
-        List<?> list = (List<?>) consField.get(sc);
+        joinAll();
 
         assertTrue(ui.activated);
-        assertEquals(1, list.size());
+        assertEquals(1, sc.consumers.size());
+        assertEquals(2, sc.threads.size());
+    }
+
+    @Test
+    public void stopSimulationDetachesUiAndJoinsThreads() throws Exception {
+        // Monitor is never started, so consumers park on the start gate and
+        // the notifier waits for the storage to drain.
+        DummyUI ui = initializeRealSimulation(3, 5);
+        Thread.sleep(50);
+
+        sc.stopSimulation();
+
+        for (Thread t : sc.threads) {
+            assertFalse(t.isAlive());
+        }
+        for (IntegerConsumer c : sc.consumers) {
+            assertEquals(0, c.getSupport().getPropertyChangeListeners().length);
+        }
+        assertEquals(0, sc.emptyStorageNotifier.getSupport().getPropertyChangeListeners().length);
+        assertEquals(0, ui.consumedEvents.get());
+        assertFalse(ui.finished.get());
+        assertTrue(sc.intStorage.hasIntegers());
+    }
+
+    @Test
+    public void stopSimulationReturnsPromptlyWhileConsumersSleepInsideTheMonitor() throws Exception {
+        sc.setConsumersQuantity(9);
+        sc.setIntegersToConsume(100);
+        sc.setSimulationStepMillis(500);
+        sc.initialize(new DummyUI());
+        sc.intStorage.setStarted(true);
+        Thread.sleep(100); // one consumer is now sleeping while holding the lock
+
+        long start = System.nanoTime();
+        sc.stopSimulation();
+        long elapsedMillis = (System.nanoTime() - start) / 1_000_000;
+
+        assertTrue(elapsedMillis < 300, "stopSimulation took " + elapsedMillis + " ms");
+        for (Thread t : sc.threads) {
+            assertFalse(t.isAlive());
+        }
+    }
+
+    @Test
+    public void stopSimulationBeforeInitializeIsNoOp() {
+        sc.stopSimulation();
+        assertNull(sc.consumers);
+    }
+
+    @Test
+    public void stopSimulationPreservesCallerInterruptFlag() throws Exception {
+        initializeRealSimulation(1, 1);
+
+        Thread.currentThread().interrupt();
+        sc.stopSimulation();
+
+        // join() threw immediately; the flag must have been restored.
+        assertTrue(Thread.interrupted());
+        joinAll();
+    }
+
+    @Test
+    public void restartSimulationStartsFreshRunImmediately() throws Exception {
+        DummyUI ui = initializeRealSimulation(2, 3);
+        List<IntegerConsumer> firstConsumers = sc.consumers;
+        IntegerStorageMonitor firstMonitor = sc.intStorage;
+        List<Thread> firstThreads = new ArrayList<>(sc.threads);
+
+        sc.restartSimulation();
+
+        assertTrue(ui.resetCalled);
+        assertNotSame(firstConsumers, sc.consumers);
+        assertNotSame(firstMonitor, sc.intStorage);
+        assertEquals(2, sc.consumers.size());
+        for (Thread t : firstThreads) {
+            assertFalse(t.isAlive());
+        }
+
+        // The new run was started without any further call: it drains on its own.
+        joinAll();
+        assertFalse(sc.intStorage.hasIntegers());
+        assertTrue(ui.consumedEvents.get() > 0);
+        assertTrue(ui.finished.get());
+    }
+
+    @Test
+    public void restartSimulationBeforeInitializeIsNoOp() {
+        sc.restartSimulation();
+        assertNull(sc.consumers);
+        assertNull(sc.intStorage);
     }
 }

@@ -22,6 +22,7 @@ Running the project renders a graphic interface with a visual representation of 
 * The main window shows a grid of random-colored panels, one per consumer thread.
 * The window *observes* each *observable* `IntegerConsumerImpl` and updates the matching panel with the integer that thread just consumed.
 * The window also observes an `EmptyIntegerStorageNotifier` to detect when every integer has been consumed.
+* `Monitor → Restart` stops the current run, clears the panels and starts a new one immediately. The window title shows the run number.
 
 ## Problem statement
 
@@ -41,7 +42,7 @@ The simulation holds a finite quantity of integers (15 by default) consumed by a
 | `IntegerStorageMonitorImpl` | The **monitor**. Owns the integers and the only methods that touch them. Implemented as a singleton. |
 | `IntegerConsumerImpl` | A **consumer**. A `Runnable` that competes for the monitor's lock and consumes integers until none remain. One thread per instance. |
 | `EmptyIntegerStorageNotifier` | A **waiter**. A `Runnable` that blocks inside the monitor until the storage is empty, then notifies its observers. |
-| `SimulationController` | The **composition root**. Creates the monitor, the notifier and the consumers, wires the UI as observer, and launches the threads. |
+| `SimulationController` | The **composition root**. Creates the monitor, the notifier and the consumers, wires the UI as observer, launches the threads, and stops or restarts them on request. |
 | `UIManagerSwingImpl` | The **observer**. A Swing window that reacts to events fired by consumers and by the notifier. |
 
 ### Class diagram
@@ -54,7 +55,10 @@ classDiagram
     }
 
     class SimulationController {
-
+        +initialize(UIManager)
+        +startSimulation()
+        +stopSimulation()
+        +restartSimulation()
     }
 
     class IntegerStorageMonitor {
@@ -91,6 +95,9 @@ classDiagram
     }
 
     class UIManager {
+        +activate()
+        +startSimulation(): boolean
+        +reset()
     }
     <<interface>> UIManager
 
@@ -159,6 +166,10 @@ public class IntegerStorageMonitorImpl implements IntegerStorageMonitor {
 		}
 		return _instance;
 	}
+
+	public static void reset() {
+		_instance = null;
+	}
 	// ...
 }
 ```
@@ -168,7 +179,7 @@ public class IntegerStorageMonitorImpl implements IntegerStorageMonitor {
 ### Discussion
 
 * **Lazy initialisation is not thread-safe by itself.** Two threads calling `instance()` concurrently before `_instance` is set could each create an object. It is acceptable here because the singleton is created by `SimulationController.initialize()` on the AWT Event Dispatch Thread *before* any worker thread exists. A production implementation would use an enum, a static holder class, or double-checked locking with a `volatile` field.
-* **Arguments are honoured only once.** After the first call, `instance(consumableInts, waitMillis)` ignores its parameters. The tests reset the private `_instance` field through reflection to obtain a fresh monitor per test.
+* **Arguments are honoured only once.** After the first call, `instance(consumableInts, waitMillis)` ignores its parameters. The static `reset()` discards the current instance so that the next call builds a fresh monitor. The tests use it to isolate each case, and `SimulationController.restartSimulation()` depends on it because a stopped monitor cannot be reused: its `forceStop` flag is one-way by design (see topic 4).
 * The accessor returns the `IntegerStorageMonitor` *interface*, so callers never depend on the concrete class. This is what allows `SimulationControllerTests` to inject a fake monitor.
 
 ## 2. Monitor synchronization and mutual exclusion
@@ -310,41 +321,81 @@ public class IntegerConsumerImpl extends AbstractObservable implements IntegerCo
 }
 ```
 
-`SimulationController.initialize()` launches one thread for the notifier and one per consumer, registering the UI as observer before each `start()` so that no event can be missed:
+`SimulationController.initialize()` shows the UI and delegates to `launchSimulation()`, which starts one thread for the notifier and one per consumer, registering the UI as observer before each `start()` so that no event can be missed. Every thread is recorded so that it can later be interrupted and joined:
 
 ```java
 	public void initialize(UIManager userInterface) {
-		// Instantiate our integer storage with some integers.
-		intStorage = IntegerStorageMonitorImpl.instance(integersToConsume, simulationStepMillis);
-
-		// Launch the notifier.
-		emptyStorageNotifier = new EmptyIntegerStorageNotifier(intStorage);
-		(new Thread(emptyStorageNotifier)).start();
-
-		// create main interface
+		// Create and show the main interface.
 		this.userInterface = userInterface;
 		this.userInterface.activate();
 
-		// Register main interface as an observer on the storage notifier
-		emptyStorageNotifier.addPropertyChangeListener(this.userInterface);
+		launchSimulation();
+	}
 
-		// Launch all consumer threads.
+	private void launchSimulation() {
+		// Instantiate our integer storage with some integers.
+		intStorage = IntegerStorageMonitorImpl.instance(integersToConsume, simulationStepMillis);
+		threads = new ArrayList<>();
+
+		// Launch the notifier, observed by the main interface.
+		emptyStorageNotifier = new EmptyIntegerStorageNotifier(intStorage);
+		emptyStorageNotifier.addPropertyChangeListener(userInterface);
+		launchThread(emptyStorageNotifier);
+
+		// Launch all consumer threads, observed by the main interface.
 		consumers = new ArrayList<>();
 		for (int i = 0; i < consumersQuantity; i++) {
 			IntegerConsumer consumer = new IntegerConsumerImpl(intStorage, i);
-			consumer.addPropertyChangeListener(this.userInterface);
+			consumer.addPropertyChangeListener(userInterface);
 			consumers.add(consumer);
-			(new Thread(consumer)).start();
+			launchThread(consumer);
 		}
+	}
+
+	private void launchThread(Runnable runnable) {
+		Thread thread = new Thread(runnable);
+		threads.add(thread);
+		thread.start();
 	}
 ```
 
 ### Discussion
 
-* **Cooperative termination.** There is no way to kill a Java thread safely; instead the consumer checks a `running` flag on every iteration and `terminate()` clears it. `SimulationController.stopSimulation()` simply calls `terminate()` on every consumer. Strictly, `running` should be `volatile`: `terminate()` writes it without holding any lock, so the Java Memory Model does not guarantee that the worker ever observes the change. In practice the worker re-reads the field after each `synchronized` call into the monitor and current JVMs do not cache it across that boundary, but a correct program would not rely on this.
+* **Cooperative termination and interruption.** There is no way to kill a Java thread safely. The consumer checks a `running` flag on every iteration and `terminate()` clears it, but a thread blocked in `wait()` or `Thread.sleep()` will not look at the flag until it wakes up. `Thread.interrupt()` covers that case: both calls throw `InterruptedException` at once when the thread is interrupted, and the consumer's `catch` block turns that into a clean exit. Strictly, `running` should be `volatile`: `terminate()` writes it without holding any lock, so the Java Memory Model does not guarantee that the worker ever observes the change. In practice the worker re-reads the field after each `synchronized` call into the monitor and current JVMs do not cache it across that boundary, but a correct program would not rely on this.
 * **Interruption.** `wait()` and `sleep()` throw `InterruptedException`. The consumer treats interruption as a request to exit and lets `run()` return, which ends the thread.
 * **A benign check-then-act race.** `hasIntegers()` and `consumeInt()` are two separate lock acquisitions. Two consumers may both observe "one integer left", after which one of them receives `0`. The monitor makes this harmless by returning `0` as a sentinel instead of going negative, and the UI renders that sentinel as the word "finished". Merging the two calls into a single `synchronized` method would remove the race entirely; it is left in place because it is instructive.
 * **Cleanup in `finally`.** Whatever the exit path, the consumer removes its listeners so that the UI is not retained by a dead thread.
+
+`SimulationController.stopSimulation()` combines these mechanisms into a fixed shutdown protocol, so that a restart never observes a thread from the previous run:
+
+```java
+	public void stopSimulation() {
+		if (consumers == null) {
+			return;
+		}
+		// 1. Detach the interface so that no stale event reaches it.
+		emptyStorageNotifier.removePropertyChangeListener(userInterface);
+		for (IntegerConsumer consumer : consumers) {
+			consumer.removePropertyChangeListener(userInterface);
+			// 2. Ask every consumer to leave its loop.
+			consumer.terminate();
+		}
+		// 3. Abort any Thread.sleep() or wait() in progress. This must come
+		// before forceStop(): a sleeping consumer holds the monitor lock, and
+		// forceStop() would otherwise block here until every sleep expires.
+		for (Thread thread : threads) {
+			thread.interrupt();
+		}
+		// 4. Wake up any thread still parked in wait().
+		intStorage.forceStop();
+		// 5. Return only once the old run is gone.
+		for (Thread thread : threads) {
+			joinQuietly(thread);
+		}
+	}
+```
+
+Detaching the observers first guarantees that a consumer half-way through `consumeInt()` cannot paint a stale value. `interrupt()` aborts a `sleep()` or `wait()` in progress, `forceStop()` then wakes anything still parked on the start gate, and `join()` with a timeout makes the method return only when the old threads have actually terminated. The order of steps 3 and 4 matters and is a monitor lesson in itself: `forceStop()` is `synchronized`, and a consumer asleep inside `consumeInt()` holds the lock for the whole `waitMillis`. Calling `forceStop()` first would make the stopping thread queue behind up to nine sleeping consumers, each holding the lock for half a second; interrupting first aborts every sleep at once, so the lock becomes free within milliseconds. `join()` can itself be interrupted; `joinQuietly()` restores the caller's interrupt flag in that case rather than swallowing it.
 
 ## 4. Thread waiting and signaling
 
@@ -584,6 +635,32 @@ The textbook-correct version of `propertyChange()` would marshal the work back t
 ```
 
 It is left out of the example on purpose: keeping the listener synchronous makes the thread hand-off visible in a debugger and gives the reader something concrete to reason about. The trade-off is documented here rather than hidden.
+
+### Restarting the simulation
+
+The `Monitor → Restart` menu item is the second path from the EDT into the controller. The application composes the two sides when it builds the window:
+
+```java
+		simulationController.initialize(
+				new UIManagerSwingImpl(Constants.CONSUMERS_COUNT, simulationController::restartSimulation));
+```
+
+The window receives the restart behaviour as a plain `Runnable`, so the `ui` package never imports the controller; `MenuItemRestart` simply runs it. Swing delivers the menu action on the EDT, therefore `restartSimulation()` runs on the EDT as well:
+
+```java
+	public void restartSimulation() {
+		if (consumers == null) {
+			return;
+		}
+		stopSimulation();
+		IntegerStorageMonitorImpl.reset();
+		userInterface.reset();
+		launchSimulation();
+		intStorage.setStarted(true);
+	}
+```
+
+`stopSimulation()` blocks the EDT for at most the join timeout, in practice a few milliseconds because the threads are interrupted before the stopping thread touches the monitor (see topic 3). The monitor singleton is then discarded, the panels are cleared through `UIManager.reset()`, which for once is a Swing mutation performed on the correct thread, and a fresh set of threads is launched and released immediately, without the greeting dialog. The window title counts the runs, so a restart is visible even before the first new integer is consumed.
 
 ### Why the decoupling pays off
 
