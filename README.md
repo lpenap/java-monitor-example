@@ -46,6 +46,136 @@ We have a finite quantity of integers available to be consumed (15 by default) b
 * **SimulationController**, Will get the storage reference and launch the notifier and consumers.
 
 
+### Class Diagram
+
+```mermaid
+classDiagram
+    class JavaThreadsMonitorExampleApplication {
+        +main(String[] args)
+        +launchSimulation()
+    }
+
+    class SimulationController {
+        -int consumersQuantity
+        -int integersToConsume
+        -int simulationStepMillis
+        -UIManager userInterface
+        -EmptyIntegerStorageNotifier emptyStorageNotifier
+        -IntegerStorageMonitor intStorage
+        -List<IntegerConsumer> consumers
+        +static instance()
+        +initialize(UIManager)
+        +startSimulation()
+        +stopSimulation()
+    }
+
+    class IntegerStorageMonitor {
+        +consumeInt(): int
+        +waitForAllIntegersToBeConsumed()
+        +setStarted(boolean)
+        +forceStop()
+        +hasIntegers(): boolean
+    }
+    <<interface>> IntegerStorageMonitor
+
+    class IntegerStorageMonitorImpl {
+        -int consumableInts
+        -int waitMillis
+        -boolean started
+        -boolean forceStop
+        +consumeInt(): int
+        +waitForAllIntegersToBeConsumed()
+        +setStarted(boolean)
+        +forceStop()
+        +hasIntegers(): boolean
+    }
+
+    class Observable {
+        +getSupport(): PropertyChangeSupport
+        +addPropertyChangeListener(PropertyChangeListener)
+        +removePropertyChangeListener(PropertyChangeListener)
+    }
+    <<interface>> Observable
+
+    class AbstractObservable {
+        -PropertyChangeSupport support
+        +getSupport(): PropertyChangeSupport
+        +addPropertyChangeListener(PropertyChangeListener)
+        +removePropertyChangeListener(PropertyChangeListener)
+    }
+
+    class IntegerConsumer {
+        +run()
+        +getId(): int
+        +terminate()
+    }
+    <<interface>> IntegerConsumer
+
+    class IntegerConsumerImpl {
+        -IntegerStorageMonitor monitor
+        -int id
+        -boolean running
+        -int consumedInt
+        +run()
+        +getId(): int
+        +terminate()
+    }
+
+    class EmptyIntegerStorageNotifier {
+        -IntegerStorageMonitor intStorage
+        +run()
+    }
+
+    class UIManager {
+        +activate()
+        +startSimulation(): boolean
+        +propertyChange(PropertyChangeEvent)
+    }
+    <<interface>> UIManager
+
+    class UIManagerSwingImpl {
+        -JFrame frame
+        -List<JPanel> panels
+        -Random random
+        +activate()
+        +startSimulation(): boolean
+        +propertyChange(PropertyChangeEvent)
+    }
+
+    class Runnable {
+        +run()
+    }
+    <<interface>> Runnable
+
+    class PropertyChangeListener {
+        +propertyChange(PropertyChangeEvent)
+    }
+    <<interface>> PropertyChangeListener
+
+    JavaThreadsMonitorExampleApplication --> SimulationController : configures
+    SimulationController o--> IntegerStorageMonitor : monitor
+    SimulationController o--> EmptyIntegerStorageNotifier : notifier
+    SimulationController o--> IntegerConsumer : consumers
+    SimulationController o--> UIManager : ui
+
+    IntegerStorageMonitorImpl ..|> IntegerStorageMonitor
+    IntegerConsumerImpl --|> AbstractObservable
+    IntegerConsumerImpl ..|> IntegerConsumer
+    EmptyIntegerStorageNotifier --|> AbstractObservable
+    EmptyIntegerStorageNotifier ..|> Runnable
+    EmptyIntegerStorageNotifier --> IntegerStorageMonitor : waits on
+
+    AbstractObservable ..|> Observable
+    IntegerConsumer ..|> Observable
+    IntegerConsumer ..|> Runnable
+
+    UIManagerSwingImpl ..|> UIManager
+    UIManager ..|> PropertyChangeListener
+    UIManagerSwingImpl --> IntegerConsumer : observes
+    UIManagerSwingImpl --> EmptyIntegerStorageNotifier : observes
+```
+
+
 ## Topics
 All source code should be self explanatory, so for each topic described here, please refer to the class in question. If you are not sure where to start, start reading the `JavaThreadsMonitorExampleApplication` class since the project is made with springboot.
 
