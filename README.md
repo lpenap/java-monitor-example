@@ -2,6 +2,7 @@
 [![Build](https://github.com/lpenap/java-monitor-example/actions/workflows/maven.yml/badge.svg)](https://github.com/lpenap/java-monitor-example/actions/workflows/maven.yml)
 [![GitHub release](https://img.shields.io/github/release/lpenap/java-monitor-example)](//github.com/lpenap/java-monitor-example/releases/latest)
 ![Coverage](.github/badges/jacoco.svg)
+![Branches](.github/badges/branches.svg)
 
 # Java Monitor Example
 
