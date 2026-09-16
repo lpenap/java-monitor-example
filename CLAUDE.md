@@ -43,7 +43,7 @@ All code lives under `com.penapereira.example.javamonitor`.
 
 ## Testing conventions
 
-- JUnit 6 (Jupiter) via `spring-boot-starter-test`; plain unit tests, no Mockito. Only `JavaThreadsMonitorExampleApplicationTests` is a `@SpringBootTest`.
+- JUnit 6 (Jupiter) via `spring-boot-starter-test`; plain unit tests, no Mockito (`mockito-core` is excluded from the starter in `pom.xml`; add it back before mocking anything). Only `JavaThreadsMonitorExampleApplicationTests` is a `@SpringBootTest`.
 - Both singletons hold static state (`SimulationController._uniqueInstance`, `IntegerStorageMonitorImpl._instance`). Tests reset the controller via reflection and the monitor via `IntegerStorageMonitorImpl.reset()` in `@BeforeEach`; `SimulationControllerTests` also stops and joins leftover threads in `@AfterEach`. Do the same in any new test that touches them, or tests will leak state and live threads across classes.
 - `IntegerStorageMonitorImpl`'s constructor is `protected` and the test is in the same package, so tests instantiate it directly with `waitMillis = 0` to avoid sleeping.
 - Thread-based tests use short `Thread.sleep` + `join(timeout)` rather than latches; keep new ones fast.

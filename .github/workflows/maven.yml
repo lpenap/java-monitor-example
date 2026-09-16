@@ -40,12 +40,16 @@ jobs:
       uses: advanced-security/maven-dependency-submission-action@v6.0.1
 
     - name: Generate JaCoCo Badge
+      # Master only: pull request builds never commit the badge, so
+      # generating it there is wasted work.
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       id: jacoco
       uses: cicirello/jacoco-badge-generator@v2.12.1
       with:
         generate-branches-badge: true
 
     - name: Log coverage percentage
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       run: |
         echo "coverage = ${{ steps.jacoco.outputs.coverage }}"
         echo "branch coverage = ${{ steps.jacoco.outputs.branches }}"
