@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.beans.PropertyChangeEvent;
@@ -95,6 +96,11 @@ public class SimulationControllerTests {
         Field field = SimulationController.class.getDeclaredField(name);
         field.setAccessible(true);
         field.set(sc, value);
+    }
+
+    @Test
+    public void instanceReturnsExistingSingleton() {
+        assertSame(sc, SimulationController.instance());
     }
 
     private DummyUI initializeRealSimulation(int consumers, int integers) {
