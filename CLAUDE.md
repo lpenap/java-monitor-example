@@ -19,7 +19,7 @@ Use the Maven wrapper (`./mvnw`); no local Maven install is required. JDK 25 is 
 ./mvnw -B package                               # what GitHub Actions runs
 ```
 
-JaCoCo HTML report lands in `target/site/jacoco/index.html`. Coverage is enforced socially, not by a threshold: the GitHub Actions workflow regenerates `.github/badges/jacoco.svg` and commits it back to `master` on every push. The `ui/**`, `Constants`, and the `@SpringBootApplication` class are excluded from coverage in `pom.xml`, so tests are expected to cover everything else (recent history pushed it to 100%).
+JaCoCo HTML report lands in `target/site/jacoco/index.html`. The `jacoco:check` goal runs in the `test` phase and fails the build below 95% instruction / 90% branch coverage; on top of that the GitHub Actions workflow regenerates `.github/badges/jacoco.svg` and commits it back to `master` on every push. The `ui/**`, `Constants`, and the `@SpringBootApplication` class are excluded from coverage in `pom.xml`, so tests are expected to cover everything else (recent history pushed it to 100%).
 
 ## Architecture
 

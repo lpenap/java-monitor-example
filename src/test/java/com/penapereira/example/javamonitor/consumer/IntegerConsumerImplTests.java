@@ -19,6 +19,8 @@ public class IntegerConsumerImplTests {
         private final List<Integer> ints;
         private boolean started = true;
         private boolean throwOnConsume = false;
+        private boolean interruptOnConsume = false;
+        int consumeCount = 0;
 
         TestMonitor(List<Integer> ints) {
             this.ints = new ArrayList<>(ints);
@@ -26,10 +28,16 @@ public class IntegerConsumerImplTests {
 
         void setThrowOnConsume(boolean v) { this.throwOnConsume = v; }
 
+        void setInterruptOnConsume(boolean v) { this.interruptOnConsume = v; }
+
         @Override
         public synchronized int consumeInt() throws InterruptedException, ForcedStopException {
+            consumeCount++;
             if (throwOnConsume) {
                 throw new ForcedStopException();
+            }
+            if (interruptOnConsume) {
+                throw new InterruptedException();
             }
             return ints.isEmpty() ? 0 : ints.remove(0);
         }
@@ -87,6 +95,31 @@ public class IntegerConsumerImplTests {
         IntegerConsumerImpl consumer = new IntegerConsumerImpl(monitor, 1);
         consumer.run();
         assertTrue(true);
+    }
+
+    @Test
+    public void runHandlesInterruptedExceptionAndRemovesListeners() {
+        TestMonitor monitor = new TestMonitor(List.of(1));
+        monitor.setInterruptOnConsume(true);
+        IntegerConsumerImpl consumer = new IntegerConsumerImpl(monitor, 0);
+        consumer.addPropertyChangeListener(e -> {});
+
+        consumer.run();
+
+        assertEquals(1, monitor.consumeCount);
+        assertEquals(0, consumer.getSupport().getPropertyChangeListeners().length);
+    }
+
+    @Test
+    public void terminatePreventsConsumptionAndGetIdReturns() {
+        TestMonitor monitor = new TestMonitor(List.of(1));
+        IntegerConsumerImpl consumer = new IntegerConsumerImpl(monitor, 5);
+        consumer.terminate();
+
+        consumer.run();
+
+        assertEquals(0, monitor.consumeCount);
+        assertEquals(5, consumer.getId());
     }
 }
 
