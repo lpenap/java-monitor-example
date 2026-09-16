@@ -1,4 +1,4 @@
-[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/2e6Hm8LHAzuw5AQRrJLyG6/UoewhgzBXwCsmVqmb3sy5o/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/2e6Hm8LHAzuw5AQRrJLyG6/UoewhgzBXwCsmVqmb3sy5o/tree/master)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/lpenap/java-monitor-example/tree/master.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/lpenap/java-monitor-example/tree/master)
 [![Build](https://github.com/lpenap/java-monitor-example/actions/workflows/maven.yml/badge.svg)](https://github.com/lpenap/java-monitor-example/actions/workflows/maven.yml)
 [![GitHub release](https://img.shields.io/github/release/lpenap/java-monitor-example)](//github.com/lpenap/java-monitor-example/releases/latest)
 ![Coverage](.github/badges/jacoco.svg)
